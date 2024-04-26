@@ -1,0 +1,9 @@
+version: '3.3'
+
+services:
+  bot:
+    container_name: "tgbot"
+    build: .
+    restart: always
+    env_file:
+      - ".env"
