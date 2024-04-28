@@ -1,17 +1,10 @@
-from datetime import datetime
-import logging
-
-import xlsxwriter
-import os
-
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message, FSInputFile, Update
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, Update
 
 from tgbot.filters.admin import AdminFilter
-from tgbot.loader import db
 from tgbot.keyboards.reply import adminKeyboards
-
 
 admin_router = Router()
 admin_router.message.filter(AdminFilter())
@@ -19,24 +12,45 @@ admin_router.message.filter(AdminFilter())
 
 @admin_router.message(CommandStart())
 async def admin_start(message: Message):
-    await message.reply("Assalomu alaykum. Siz adminsiz!\n Buruqlarni ko'rish uchun /help buyrug'ini kiriting:",
+    await message.reply("Assalomu alaykum. Siz adminsiz!\n Buyruqlarni ko'rish uchun /help buyrug'ini kiriting:",
                         reply_markup=adminKeyboards())
 
 
-# @admin_router.message(Command("help"))
+@admin_router.message(Command("help"))
 async def admin_help(message: Message):
-    print(message.model_dump_json())
     text = ("Buyruqlar: ",
             "/start - Botni ishga tushirish",
-            "/help - Yordam",)
-            # "/get_registration_info - ro'yhatdan o'tganlar",
-            # "/get_contest_info - konkurs qatnashchilar ro'yhati")
+            "/help - Yordam",
+            "/new_book - yangi kitob qo'shish",
+            "/new_test - yangi test raqami yaratish",
+            "/new_passage - yangi passage yaratish",
+            "/new_word - yangi so'z qo'shish"
+            "/training - vocabulary training",
+            )
+
     return await message.answer(text="\n".join(text))
 
 
-@admin_router.message(Command("help"))
+# @admin_router.message(Command("training"))
+# async def admin_help(message: Message, state: FSMContext):
+#     await message.answer("Yangi kitob nomini kiriting:")
+
+
+@admin_router.message(Command("new_book"))
+async def admin_help(message: Message, state: FSMContext):
+    await message.answer("Yangi kitob nomini kiriting:")
+
+
+@admin_router.message(Command("new_test"))
 async def admin_help(update: Update):
     print(update)
 
-@admin_router.message(F.text == "Konkurs ishtirokchilari")
-async def get_contest_info(message: Message):
+
+@admin_router.message(Command("new_passage"))
+async def admin_help(update: Update):
+    print(update)
+
+
+@admin_router.message(Command("new_word"))
+async def admin_help(update: Update):
+    print(update)

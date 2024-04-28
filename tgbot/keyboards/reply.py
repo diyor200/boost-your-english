@@ -1,9 +1,12 @@
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
+from tgbot.loader import db
+
 builder = ReplyKeyboardBuilder()
 builder.add(KeyboardButton(text="📝 Konkursda qatnashish"))
 builder.add(KeyboardButton(text="📝 Registratsiya"))
+
 
 def adminKeyboards():
     markup = ReplyKeyboardMarkup(keyboard=[[
@@ -21,20 +24,31 @@ markup = ReplyKeyboardMarkup(keyboard=[[
 ]], resize_keyboard=True)
 
 
-def uz_subjects_list() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(keyboard=[[
-        KeyboardButton(text="Matematika"),
-        KeyboardButton(text="Fizika")],
-        [KeyboardButton(text="Ingliz tili"),
-        KeyboardButton(text="Kores tili")],
-        [KeyboardButton(text="Biologiya")],
-        [KeyboardButton(text="Kimyo"),
-    ]],resize_keyboard=True)
+async def get_book_keyboard() -> ReplyKeyboardMarkup:
+    books = await db.get_all_books()
+    keyboards = []
+    for i in books:
+        keyboard = KeyboardButton(text=i[0])
+        keyboards.append(keyboard)
+
+    return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
 
 
-def ru_subjects_list():
-    markup = ReplyKeyboardMarkup(keyboard=[[
-        KeyboardButton(text="Biologiya"),
-        KeyboardButton(text="Kimyo"),
-    ]], resize_keyboard=True)
-    return markup
+async def get_test_by_book(book_title: str) -> ReplyKeyboardMarkup:
+    tests = await db.get_book_tests(book_title)
+    keyboards = []
+    for i in tests:
+        keyboard = KeyboardButton(text=str(i[0]))
+        keyboards.append(keyboard)
+
+    return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
+
+
+async def get_passage_by_test(test_number: int) -> ReplyKeyboardMarkup:
+    passages = await db.get_book_passage(test_number)
+    keyboards = []
+    for i in passages:
+        keyboard = KeyboardButton(text=str(i[0]))
+        keyboards.append(keyboard)
+
+    return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)

@@ -5,13 +5,24 @@ import sys
 import asyncpg
 from asyncpg import Connection
 from asyncpg.pool import Pool
+from asyncpg import create_pool
 
 from tgbot.data import config
 
 
 class Database:
     def __init__(self):
-        self.pool: Union[Pool, None]
+        try:
+            self.pool = asyncpg.create_pool(
+                user="postgres",
+                password="2001",
+                host="localhost",
+                database="postgres",
+            )
+        except Exception as e:
+            logging.error("can't connect to database", e)
+            sys.exit(1)
+
 
     async def close(self):
         await self.pool.close()
@@ -19,13 +30,14 @@ class Database:
     async def create(self):
         try:
             self.pool = await asyncpg.create_pool(
-                user=config.DB_USER,
-                password=config.DB_PASS,
-                host=config.DB_HOST,
-                database=config.DB_NAME,
+                user="postgres",
+                password="2001",
+                host="localhost",
+                database="postgres",
             )
-        except:
-            logging.error("can't connect to database")
+        except Exception as e:
+            logging.error("can't connect to database", e)
+            await self.pool.close()
             sys.exit(1)
 
     async def execute(self, command, *args,
@@ -136,18 +148,24 @@ create table if not exists test_results(
                " date_trunc('minute', NOW() AT TIME ZONE 'Asia/Tashkent'))")
         return await self.execute(sql, name, book, execute=True)
 
-    async def get_book_tests(self):
-        return await self.execute("select number from tests where book_id=(select id from books where name=$1);", fetch=True)
+    async def get_book_tests(self, book_title):
+        return await self.execute(
+            "select number from tests where book_id=(select id from books where name=$1);",
+            book_title,
+            fetch=True
+        )
 
     #  book's tests
-    async def add_book_test(self, name, book):
-        sql = ("insert into tests(book_id, number, created_at) values ((select id from books where name=$1), $2,"
+    async def add_book_passage(self, test_number, passage_number):
+        sql = ("insert into passages(test_id, number, created_at) values ((select id from tests where number=$1), $2,"
                " date_trunc('minute', NOW() AT TIME ZONE 'Asia/Tashkent'))")
-        return await self.execute(sql, name, book, execute=True)
+        return await self.execute(sql, test_number, passage_number, execute=True)
 
-    async def get_book_tests(self):
-        return await self.execute("select number from tests where book_id=(select id from books where name=$1);",
-                                  fetch=True)
+    async def get_book_passage(self, passage_number):
+        return await self.execute(
+            "select number from passages where test_id=(select id from tests where number=$1);",
+            passage_number,
+            fetch=True)
 
     # users
     async def add_user(self, name, username, telegram_id):

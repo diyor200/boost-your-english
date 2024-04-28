@@ -1,19 +1,34 @@
-from aiogram.fsm.state import  StatesGroup, State
+from aiogram.fsm.state import StatesGroup, State
 
 
-class Registration(StatesGroup):
+class NewBook(StatesGroup):
     Name = State()
-    Surname = State()
-    Age = State()
-    Language = State()
-    Address = State()
-    Phone = State()
 
-class Subject(StatesGroup):
+
+class NewTest(StatesGroup):
+    BookTitle = State()
+    TestNumber = State()
+
+
+class NewPassage(StatesGroup):
+    BookTitle = State()
+    TestNumber = State()
+    PassageNumber = State()
+
+
+class NewWord(StatesGroup):
+    BookTitle = State()
+    TestNumber = State()
+    PassageNumber = State()
+    Word = State()
+
+
+class VocabularyTraining(StatesGroup):
+    BookTitle = State()
+    TestNumber = State()
+    PassageNumber = State()
+    Word = State()
+
+
+class Quiz(StatesGroup):
     Name = State()
-    Surname = State()
-    Age = State()
-    Address = State()
-    Phone = State()
-    Language = State()
-    SubjectChoice = State()
