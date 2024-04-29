@@ -44,11 +44,12 @@ async def get_test_by_book(book_title: str) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
 
 
-async def get_passage_by_test(test_number: int) -> ReplyKeyboardMarkup:
-    passages = await db.get_book_passage(test_number)
+async def get_passage_by_test(test_number: int, book_title: str) -> ReplyKeyboardMarkup:
+    passages = await db.get_book_passage(test_number, book_title)
     keyboards = []
     for i in passages:
         keyboard = KeyboardButton(text=str(i[0]))
         keyboards.append(keyboard)
 
     return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
+

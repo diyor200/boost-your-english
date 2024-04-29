@@ -161,12 +161,19 @@ create table if not exists test_results(
                " date_trunc('minute', NOW() AT TIME ZONE 'Asia/Tashkent'))")
         return await self.execute(sql, test_number, passage_number, execute=True)
 
-    async def get_book_passage(self, passage_number):
+    async def get_book_passage(self, passage_number, book_title):
         return await self.execute(
-            "select number from passages where test_id=(select id from tests where number=$1);",
-            passage_number,
-            fetch=True)
+            """select number from passages where test_id=(select id from tests where number=$1
+            and book_id=(select id from books where name=$2));""",
+            passage_number, book_title, fetch=True)
 
+    # vocabulary
+    async def get_vocabulary_by_passage(self, passage, test, book, count):
+        sql = """select v.* from vocabulary v join passages p on p.id = v.passage_id join tests t on p.test_id = t.id
+        join books b on t.book_id = b.id where passage_id=(select id from passages where number=$1
+        and test_id=(select id from tests where number = $2 and book_id=(select id from books
+        where name=$3))) limit $4;"""
+        return await self.execute(sql, passage, test, book, count, fetch=True)
     # users
     async def add_user(self, name, username, telegram_id):
         sql = ("INSERT INTO users (name, username, telegram_id, created_at) VALUES($1, $2, $3,"
