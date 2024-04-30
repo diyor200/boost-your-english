@@ -29,6 +29,8 @@ create table if not exists passages(
 
 create table if not exists vocabulary(
     id serial primary key ,
+    book_id int references books(id) not null ,
+    test_id int references test(id) not null ,
     passage_id int references passages(id) not null ,
     word varchar(255) not null ,
     definition varchar(500),

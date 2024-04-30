@@ -29,28 +29,3 @@ async def admin_help(message: Message):
             )
 
     return await message.answer(text="\n".join(text))
-
-
-# @admin_router.message(Command("training"))
-# async def admin_help(message: Message, state: FSMContext):
-#     await message.answer("Yangi kitob nomini kiriting:")
-
-
-@admin_router.message(Command("new_book"))
-async def admin_help(message: Message, state: FSMContext):
-    await message.answer("Yangi kitob nomini kiriting:")
-
-
-@admin_router.message(Command("new_test"))
-async def admin_help(update: Update):
-    print(update)
-
-
-@admin_router.message(Command("new_passage"))
-async def admin_help(update: Update):
-    print(update)
-
-
-@admin_router.message(Command("new_word"))
-async def admin_help(update: Update):
-    print(update)

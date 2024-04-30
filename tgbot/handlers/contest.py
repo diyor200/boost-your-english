@@ -1,6 +1,6 @@
 import logging
 import re
-import asyncpg
+from openpyxl import load_workbook
 
 from aiogram import types
 from aiogram import Router
@@ -11,7 +11,7 @@ from aiogram.filters import Command
 from tgbot.loader import db, config
 from tgbot.keyboards.reply import get_book_keyboard, get_test_by_book, get_passage_by_test
 from tgbot.services.broadcaster import broadcast
-from tgbot.misc.states import VocabularyTraining
+from tgbot.misc.states import VocabularyTraining, NewWord
 
 contest_router = Router()
 
@@ -78,13 +78,74 @@ async def begin_registration(message: types.Message, state: FSMContext):
         correct, wrong = 0, 0
 
         details = ""
+        mark = ""
         for key in keys:
-            details += f"{key + 1}. Correct: <code>{true_answers[key]}</code>, your_answer: <code>{answers[key]}</code>\n"
             if true_answers[key] == answers[key]:
+                mark = "✅"
                 correct += 1
             else:
+                mark = "❌"
                 wrong += 1
+
+            details += f"{key + 1}. Correct: <code>{true_answers[key]}</code>, your_answer: <code>{answers[key]}</code> {mark}\n"
 
         await message.answer(f"<b>Quiz is over</b>\nCorrect:\t{correct}\nWrong:\t{wrong}\n\nDetails:\n{details}",
                              reply_markup=types.ReplyKeyboardRemove())
         await state.clear()
+
+
+# new word
+@contest_router.message(Command("new_word"))
+async def new_word(message: types.Message, state: FSMContext):
+    await message.answer("Kitob tanlang:", reply_markup=await get_book_keyboard())
+    await state.set_state(NewWord.BookTitle)
+
+
+@contest_router.message(NewWord.BookTitle)
+async def new_word(message: types.Message, state: FSMContext):
+    await state.update_data({"book": message.text})
+    await message.answer("test raqamini tanlang:", reply_markup=await get_test_by_book(message.text))
+    await state.set_state(NewWord.TestNumber)
+
+
+@contest_router.message(NewWord.TestNumber)
+async def new_word(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    await message.answer("passageni tanlang:",
+                         reply_markup=await get_passage_by_test(int(message.text), data["book"]))
+    await state.update_data({"test": message.text})
+    await state.set_state(NewWord.PassageNumber)
+
+
+@contest_router.message(NewWord.PassageNumber)
+async def new_word(message: types.Message, state: FSMContext):
+    await state.update_data({"passage": message.text})
+    await message.answer("so'zlar yozilgan excel faylni yuboring:", reply_markup=types.ReplyKeyboardRemove())
+    await state.set_state(NewWord.Word)
+
+
+@contest_router.message(NewWord.Word)
+async def new_word(message: types.Message, state: FSMContext):
+    file = await message.bot.get_file(message.document.file_id)
+    f = await message.bot.download_file(file.file_path)
+    workbook = load_workbook(f)
+    sheet = workbook.active
+
+    data = await state.get_data()
+
+    ids = await db.return_ids_for_word_adding(data["book"], int(data["test"]), int(data["passage"]))
+    print(ids)
+    row_data = {0: "", 1: "", 2: ""}
+    for row in sheet.iter_rows():
+        i = 0
+        for cell in row:
+            row_data[i] = cell.value
+            i = i + 1
+        print(row_data)
+        try:
+            await db.add_word(ids[0], ids[1], ids[2], row_data[0], row_data[1], row_data[2])
+        except Exception as e:
+            logging.warning(e)
+
+    await message.answer("processing...", reply_markup=types.ReplyKeyboardRemove())
+    await state.set_state(NewWord.Word)

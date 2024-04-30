@@ -174,6 +174,33 @@ create table if not exists test_results(
         and test_id=(select id from tests where number = $2 and book_id=(select id from books
         where name=$3))) limit $4;"""
         return await self.execute(sql, passage, test, book, count, fetch=True)
+
+    # for adding new word
+    async def return_ids_for_word_adding(self, book, test, passage) -> list:
+        res = await self.execute("select id from books where name=$1;", book, fetchrow=True)
+        book_id = res[0]
+
+        res = await self.execute("select id from tests where book_id=$1 and number=$2;", book_id, test,
+                                 fetchrow=True)
+        test_id = res[0]
+
+        res = await self.execute("select id from passages where number = $1 and test_id = $2;",
+                                 passage, test_id, fetchrow=True)
+        passage_id = res[0]
+
+        r = list()
+        r.append(book_id)
+        r.append(test_id)
+        r.append(passage_id)
+
+        return r
+
+    # new_word add new word
+    async def add_word(self, book_id, test_id, passage_id, word, definition, translation):
+        sql = """insert into vocabulary(book_id, test_id, passage_id, word, definition, translation)
+                values ($1,$2,$3,$4,$5,$6);"""
+        return await self.execute(sql, book_id, test_id, passage_id, word, definition, translation, execute=True)
+
     # users
     async def add_user(self, name, username, telegram_id):
         sql = ("INSERT INTO users (name, username, telegram_id, created_at) VALUES($1, $2, $3,"
