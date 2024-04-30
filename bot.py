@@ -213,6 +213,7 @@ register_global_middlewares(dp, config)
 # async def process_update(update: dict):
 #     telegram_update = types.Update(**update)
 #     await dp._process_update(bot, telegram_update)
+#     await dp.feed_webhook_update(bot=bot, update=types.Update(**update))(bot, telegram_update)
 #
 #
 # @app.on_event("shutdown")

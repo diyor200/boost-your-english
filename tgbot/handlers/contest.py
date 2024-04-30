@@ -19,13 +19,25 @@ contest_router = Router()
 # training
 @contest_router.message(Command('training'))
 async def begin_registration(message: types.Message, state: FSMContext):
-    await message.answer("kitobni tanlang:", reply_markup=await get_book_keyboard())
+    markup = await get_book_keyboard()
+    if len(markup.keyboard[0]) < 1:
+        await message.answer("Kitob mavjud emas, <code>/new_book</code> - orqali yangi kitob qo'shing",
+                             reply_markup=types.ReplyKeyboardRemove())
+        await state.clear()
+        return
+    await message.answer("kitobni tanlang:", reply_markup=markup)
     await state.set_state(VocabularyTraining.BookTitle)
 
 
 @contest_router.message(VocabularyTraining.BookTitle)
 async def begin_registration(message: types.Message, state: FSMContext):
-    await message.answer("testni tanlang:", reply_markup=await get_test_by_book(message.text))
+    markup = await get_test_by_book(message.text)
+    if len(markup.keyboard[0]) < 1:
+        await message.answer("test mavjud emas, <code>/new_test</code> - orqali yangi test raqamini qo'shing",
+                             reply_markup=types.ReplyKeyboardRemove())
+        await state.clear()
+        return
+    await message.answer("testni tanlang:", reply_markup=markup)
     await state.update_data({"book": message.text})
     await state.set_state(VocabularyTraining.TestNumber)
 
@@ -33,8 +45,15 @@ async def begin_registration(message: types.Message, state: FSMContext):
 @contest_router.message(VocabularyTraining.TestNumber)
 async def begin_registration(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    await message.answer("passage tanlang:",
-                         reply_markup=await get_passage_by_test(int(message.text), data['book']))
+
+    markup = await get_passage_by_test(int(message.text), data['book'])
+    if len(markup.keyboard[0]) < 1:
+        await message.answer("passage mavjud emas, <code>/new_passage</code> - orqali yangi passage qo'shing",
+                             reply_markup=types.ReplyKeyboardRemove())
+        await state.clear()
+        return
+
+    await message.answer("passage tanlang:", reply_markup=markup)
     await state.update_data({"test": int(message.text)})
     await state.set_state(VocabularyTraining.PassageNumber)
 
@@ -43,6 +62,11 @@ async def begin_registration(message: types.Message, state: FSMContext):
 async def begin_registration(message: types.Message, state: FSMContext):
     data = await state.get_data()
     words = await db.get_vocabulary_by_passage(int(message.text), int(data["test"]), data["book"], 15)
+    if len(words) < 1:
+        await message.answer(text="so'zlar mavjud emas. <code>/new_word</code> orqali yangi so'zlarni qo'shing",
+                             reply_markup=types.ReplyKeyboardRemove())
+        await state.clear()
+        return
     index = 0
     word = words[index]["word"]
     await message.answer(text=f"{index+1}.Word: <b>{word}</b>\nDefinition: <i>{words[index]['definition']}</i>",
