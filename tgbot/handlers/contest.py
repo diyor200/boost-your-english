@@ -1,19 +1,39 @@
 import logging
 import re
+
+import aiogram.filters
 from openpyxl import load_workbook
 
 from aiogram import types
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.enums.content_type import ContentType
 from aiogram.filters import Command
 
 from tgbot.loader import db, config
-from tgbot.keyboards.reply import get_book_keyboard, get_test_by_book, get_passage_by_test
+from tgbot.keyboards.reply import get_book_keyboard, get_test_by_book, get_passage_by_test, end_next_keyboard
+from tgbot.keyboards.inline import get_books_inline
 from tgbot.services.broadcaster import broadcast
 from tgbot.misc.states import VocabularyTraining, NewWord
 
 contest_router = Router()
+
+
+@contest_router.message(F.text.casefold() == "finish")
+async def cancel_handler(message: types.Message, state: FSMContext) -> None:
+    """
+    Allow user to cancel any action
+    """
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+
+    logging.info("Cancelling state %r", current_state)
+    await state.clear()
+    await message.answer(
+        "Cancelled.",
+        reply_markup=types.ReplyKeyboardRemove(),
+    )
 
 
 # training
@@ -70,7 +90,7 @@ async def begin_registration(message: types.Message, state: FSMContext):
     index = 0
     word = words[index]["word"]
     await message.answer(text=f"{index+1}.Word: <b>{word}</b>\nDefinition: <i>{words[index]['definition']}</i>",
-                         reply_markup=types.ReplyKeyboardRemove())
+                         reply_markup=end_next_keyboard)
     question_count = len(words)
     answers = []
     for i in range(question_count):
@@ -102,7 +122,6 @@ async def begin_registration(message: types.Message, state: FSMContext):
         correct, wrong = 0, 0
 
         details = ""
-        mark = ""
         for key in keys:
             if true_answers[key] == answers[key]:
                 mark = "✅"
@@ -111,7 +130,8 @@ async def begin_registration(message: types.Message, state: FSMContext):
                 mark = "❌"
                 wrong += 1
 
-            details += f"{key + 1}. Correct: <code>{true_answers[key]}</code>, your_answer: <code>{answers[key]}</code> {mark}\n"
+            details += (f"{key + 1}. Correct: <code>{true_answers[key]}</code>, your_answer: <code>{answers[key]}</code>"
+                        f" {mark}\n")
 
         await message.answer(f"<b>Quiz is over</b>\nCorrect:\t{correct}\nWrong:\t{wrong}\n\nDetails:\n{details}",
                              reply_markup=types.ReplyKeyboardRemove())
@@ -155,21 +175,26 @@ async def new_word(message: types.Message, state: FSMContext):
     workbook = load_workbook(f)
     sheet = workbook.active
 
+    await message.answer("processing...", reply_markup=types.ReplyKeyboardRemove())
+
     data = await state.get_data()
 
     ids = await db.return_ids_for_word_adding(data["book"], int(data["test"]), int(data["passage"]))
-    print(ids)
     row_data = {0: "", 1: "", 2: ""}
     for row in sheet.iter_rows():
         i = 0
         for cell in row:
             row_data[i] = cell.value
             i = i + 1
-        print(row_data)
         try:
             await db.add_word(ids[0], ids[1], ids[2], row_data[0], row_data[1], row_data[2])
         except Exception as e:
             logging.warning(e)
 
-    await message.answer("processing...", reply_markup=types.ReplyKeyboardRemove())
-    await state.set_state(NewWord.Word)
+    await message.answer(text="words added successfully", reply_markup=types.ReplyKeyboardRemove())
+    await state.clear()
+
+
+@contest_router.message(Command("inline"))
+async def new_word(message: types.Message, state: FSMContext):
+    await message.answer(text="inline keyboard", reply_markup=await get_books_inline())

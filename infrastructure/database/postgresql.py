@@ -203,7 +203,7 @@ create table if not exists test_results(
 
     # users
     async def add_user(self, name, username, telegram_id):
-        sql = ("INSERT INTO users (name, username, telegram_id, created_at) VALUES($1, $2, $3,"
+        sql = ("INSERT INTO users(name, username, telegram_id, created_at) VALUES($1, $2, $3,"
                " date_trunc('minute', NOW() AT TIME ZONE 'Asia/Tashkent'))")
         return await self.execute(sql, name, username, telegram_id, execute=True)
 

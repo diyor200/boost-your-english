@@ -10,4 +10,3 @@ a)
 b) admin userlarga kitob, unit, test, passage(lar) ni tanlab post yuboradi.
 bu hamma userlarga keladi va `ishtirok etish` ni bosib testni ishlashni boshledi. buni vaqtlik qilish kerek.
 
-hozircha shu

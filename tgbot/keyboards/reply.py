@@ -53,3 +53,8 @@ async def get_passage_by_test(test_number: int, book_title: str) -> ReplyKeyboar
 
     return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
 
+
+end_next_keyboard = ReplyKeyboardMarkup(keyboard=[[
+    KeyboardButton(text='next->'),
+    KeyboardButton(text='finish'),
+]], resize_keyboard=True)
