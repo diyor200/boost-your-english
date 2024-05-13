@@ -49,4 +49,4 @@ COPY --from=build /usr/local/bin /usr/local/bin
 COPY --from=build /app .
 
 # Set the entry point
-CMD ["python3", "bot.py"]
+CMD ["uvicorn", "bot:app", "--host", "localhost", "--port", "8080"]
