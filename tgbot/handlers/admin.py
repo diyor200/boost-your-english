@@ -6,8 +6,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, Update, ReplyKeyboardRemove
 
 from tgbot.filters.admin import AdminFilter
-from tgbot.keyboards.reply import adminKeyboards
 from tgbot.loader import db
+from tgbot.keyboards.reply import main_page_keyboard
 
 admin_router = Router()
 admin_router.message.filter(AdminFilter())
@@ -23,7 +23,7 @@ async def admin_start(message: Message):
         logging.error(msg=f"error during adding user: {e}")
 
     await message.reply("Assalomu alaykum. Siz adminsiz!\n Buyruqlarni ko'rish uchun /help buyrug'ini kiriting:",
-                        reply_markup=ReplyKeyboardRemove())
+                        reply_markup=main_page_keyboard())
 
 
 @admin_router.message(Command("help"))
@@ -38,4 +38,4 @@ async def admin_help(message: Message):
             "/training - vocabulary training",
             )
 
-    return await message.answer(text="\n".join(text))
+    return await message.answer(text="\n".join(text), reply_markup=main_page_keyboard())

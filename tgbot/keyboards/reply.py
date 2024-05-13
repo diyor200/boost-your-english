@@ -3,25 +3,12 @@ from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 from tgbot.loader import db
 
-builder = ReplyKeyboardBuilder()
-builder.add(KeyboardButton(text="📝 Konkursda qatnashish"))
-builder.add(KeyboardButton(text="📝 Registratsiya"))
 
-
-def adminKeyboards():
-    markup = ReplyKeyboardMarkup(keyboard=[[
-        KeyboardButton(text="📝 Konkursda qatnashish"),
-        KeyboardButton(text="📝 Registratsiya")],
-    [KeyboardButton(text="Konkurs ishtirokchilari")],
-    [KeyboardButton(text="Ro'yhatdan o'tganlar")]],
-      resize_keyboard=True)
-    return markup
-
-
-markup = ReplyKeyboardMarkup(keyboard=[[
-    KeyboardButton(text="🇺🇿 o'zbekcha"),
-    KeyboardButton(text="🇷🇺 ruscha"),
-]], resize_keyboard=True)
+def main_page_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(keyboard=[[
+        KeyboardButton(text="Training🏋️"),
+        KeyboardButton(text="Quiz🤓"),
+    ]], resize_keyboard=True)
 
 
 async def get_book_keyboard() -> ReplyKeyboardMarkup:
@@ -54,7 +41,7 @@ async def get_passage_by_test(test_number: int, book_title: str) -> ReplyKeyboar
     return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
 
 
-end_next_keyboard = ReplyKeyboardMarkup(keyboard=[[
-    KeyboardButton(text='next->'),
-    KeyboardButton(text='finish'),
-]], resize_keyboard=True)
+end_next_keyboard = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='next')],
+    [KeyboardButton(text='finish')],
+], resize_keyboard=True)

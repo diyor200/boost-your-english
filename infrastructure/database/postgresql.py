@@ -23,7 +23,6 @@ class Database:
             logging.error("can't connect to database", e)
             sys.exit(1)
 
-
     async def close(self):
         await self.pool.close()
 
@@ -92,6 +91,8 @@ create table if not exists passages(
 
 create table if not exists vocabulary(
     id serial primary key ,
+    book_id int references books(id) not null ,
+    test_id int references tests(id) not null ,
     passage_id int references passages(id) not null ,
     word varchar(255) not null ,
     definition varchar(500),
@@ -168,12 +169,12 @@ create table if not exists test_results(
             passage_number, book_title, fetch=True)
 
     # vocabulary
-    async def get_vocabulary_by_passage(self, passage, test, book, count):
+    async def get_vocabulary_by_passage(self, passage, test, book):
         sql = """select v.* from vocabulary v join passages p on p.id = v.passage_id join tests t on p.test_id = t.id
         join books b on t.book_id = b.id where passage_id=(select id from passages where number=$1
         and test_id=(select id from tests where number = $2 and book_id=(select id from books
-        where name=$3))) limit $4;"""
-        return await self.execute(sql, passage, test, book, count, fetch=True)
+        where name=$3)));"""
+        return await self.execute(sql, passage, test, book, fetch=True)
 
     # for adding new word
     async def return_ids_for_word_adding(self, book, test, passage) -> list:

@@ -119,8 +119,10 @@ register_global_middlewares(dp, config)
 
 @app.on_event("startup")
 async def start_up():
-    if await bot.get_webhook_info():
-        await bot.delete_webhook()
+    # if await bot.get_webhook_info():
+    #     await bot.delete_webhook()
+    #
+    # await bot.set_webhook(url="https://5acb-95-214-211-57.ngrok-free.app/webhook")
 
     await on_startup(bot,db, config.tg_bot.admin_ids)
 
