@@ -34,10 +34,21 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
         reply_markup=main_page_keyboard(),
     )
 
+
 @collection_router.message(F.text == 'Collection')
 async def collection_handler(message: types.Message, state: FSMContext):
-    await message.answer(text="collectionni tanlang", reply_markup=await get_collections(str(message.from_user.id)))
-    await state.set_state(CollectionWordTraining.Collection)
+    try:
+        collections = await db.select_all_collections(str(message.from_user.id))
+        if len(collections) < 1:
+            await message.answer(text="collectionlar mavjud emas, <code>/new_collection</code>"
+                                      " orqali yangisini qo'shing")
+            return
+
+        await message.answer(text="collectionni tanlang", reply_markup=await get_collections(str(message.from_user.id)))
+        await state.set_state(CollectionWordTraining.Collection)
+    except Exception as e:
+        logging.warning(e)
+        await message.answer("muammo yuzaga keldi")
 
 
 @collection_router.message(CollectionWordTraining.Collection)
@@ -49,7 +60,7 @@ async def get_collection(message: types.Message, state: FSMContext):
         collection_words_count = len(collection_words)
 
         if collection_words_count < 1:
-            await message.answer(text="so'zlar mavjud emas", reply_markup=main_page_keyboard())
+            await message.answer(text="so'zlar mavjud emasbuyruqlarni ko'rish uchun, /help ", reply_markup=main_page_keyboard())
             await state.clear()
             return
 
@@ -90,3 +101,61 @@ async def begin_registration(message: types.Message, state: FSMContext):
         await message.answer(f"<b>Train is over</b>. You can test your knowledge in Quiz section",
                              reply_markup=main_page_keyboard())
         await state.clear()
+
+
+
+# new collection
+@collection_router.message(Command("new_collection"))
+async def new_collection(message: types.Message, state: FSMContext):
+    await message.answer("Nomini kiriting:", reply_markup=types.ReplyKeyboardRemove())
+    await state.set_state(Collection.Title)
+
+
+@collection_router.message(Collection.Title)
+async def new_title(message: types.Message, state: FSMContext):
+    try:
+        await db.add_collection(message.text, str(message.from_user.id))
+    except Exception as e:
+        logging.warning(e)
+        await message.answer("muammo yuzaga keldi")
+    await state.clear()
+
+
+@collection_router.message(Command("new_collection_word"))
+async def new_collection(message: types.Message, state: FSMContext):
+    await message.answer("Collectionni tanlang:", reply_markup=await get_collections(str(message.from_user.id)))
+    await state.set_state(CollectionWord.Collection)
+
+
+@collection_router.message(CollectionWord.Collection)
+async def new_word(message: types.Message, state: FSMContext):
+    await state.update_data({"collection": message.text})
+    await message.answer("so'zlar yozilgan excel faylni yuboring:", reply_markup=types.ReplyKeyboardRemove())
+    await state.set_state(CollectionWord.Word)
+
+
+@collection_router.message(CollectionWord.Word)
+async def new_word(message: types.Message, state: FSMContext):
+    file = await message.bot.get_file(message.document.file_id)
+    f = await message.bot.download_file(file.file_path)
+    workbook = load_workbook(f)
+    sheet = workbook.active
+
+    await message.answer("processing...", reply_markup=types.ReplyKeyboardRemove())
+
+    data = await state.get_data()
+
+    collection_id = await db.get_collection_id(data["collection"], str(message.from_user.id))
+    row_data = {0: "", 1: ""}
+    for row in sheet.iter_rows():
+        i = 0
+        for cell in row:
+            row_data[i] = cell.value
+            i = i + 1
+        try:
+            await db.add_collection_word(collection_id[0], row_data[0], row_data[1])
+        except Exception as e:
+            logging.warning(e)
+
+    await message.answer(text="words added successfully", reply_markup=main_page_keyboard())
+    await state.clear()

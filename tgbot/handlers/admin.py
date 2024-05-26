@@ -39,6 +39,8 @@ async def admin_help(message: Message):
             "/new_passage - yangi passage yaratish",
             "/new_word - yangi so'z qo'shish"
             "/training - vocabulary training",
+            "/new_collection - yangi kolleksiya",
+            "/new_collection_word - kolleksiyaga so'z qo'shish"
             )
 
     return await message.answer(text="\n".join(text), reply_markup=main_page_keyboard())
