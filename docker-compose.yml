@@ -7,3 +7,15 @@ services:
     restart: always
     env_file:
       - ".env"
+  
+  db:
+    image: postgres:latest
+    container_name: my_postgres_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2001
+    volumes:
+      - ./data:/var/lib/postgresql/data

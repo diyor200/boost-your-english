@@ -228,18 +228,18 @@ async def shutdown():
     return
 
 
-# async def main():
+async def main():
 #     # session = AiohttpSession(proxy="http://172.25.113.50:8085")
-#     # bot = Bot(token=config.tg_bot.token, parse_mode="HTML", session=session)
-#     bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-#     if await bot.get_webhook_info():
-#         await bot.delete_webhook()
-#
-#     await on_startup(bot, db, config.tg_bot.admin_ids)
-#     await dp.start_polling(bot)
+     # bot = Bot(token=config.tg_bot.token, parse_mode="HTML", session=session)
+     bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+     if await bot.get_webhook_info():
+         await bot.delete_webhook()
 
-# if __name__ == "__main__":
-#     try:
-#         asyncio.run(main())
-#     except (KeyboardInterrupt, SystemExit):
-#         logging.error("bot o'chdi!")
+     await on_startup(bot, db, config.tg_bot.admin_ids)
+     await dp.start_polling(bot)
+
+if __name__ == "__main__":
+     try:
+         asyncio.run(main())
+     except (KeyboardInterrupt, SystemExit):
+         logging.error("bot o'chdi!")
