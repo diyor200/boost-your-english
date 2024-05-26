@@ -12,15 +12,19 @@ from aiogram.filters import Command
 from tgbot.loader import db, config
 from tgbot.keyboards.reply import (get_book_keyboard, get_test_by_book, get_passage_by_test, end_next_keyboard,
                                    main_page_keyboard)
-from tgbot.keyboards.inline import get_books_inline
 from tgbot.services.broadcaster import broadcast
 from tgbot.misc.states import VocabularyTraining, NewWord
+
+
 
 train_router = Router()
 
 
-@train_router.message(F.text == "finish")
+@train_router.message(F.text.casefold() == "finish")
 async def cancel_handler(message: types.Message, state: FSMContext) -> None:
+    """
+    Allow user to cancel any action
+    """
     current_state = await state.get_state()
     if current_state is None:
         return
@@ -29,9 +33,8 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer(
         "Cancelled.",
-        reply_markup=types.ReplyKeyboardRemove(),
+        reply_markup=main_page_keyboard(),
     )
-
 
 # training
 @train_router.message(F.text == "Training🏋️")
@@ -108,16 +111,14 @@ async def begin_registration(message: types.Message, state: FSMContext):
     index = data["index"]
     words = data["words"]
     question_count = data["question_count"]
-    answers: dict = data["answers"]
-    answers[index-1] = message.text
     if index < question_count:
         word = words[index]["word"]
         text = (f"{index+1}.Word: <b>{word}</b>\nDefinition: <i>{words[index]['definition']}</i>"
                 f"\nTranslation: <code>{words[index]['translation']}</code>")
-        await state.update_data({"index": index+1, "answers": answers})
+        await state.update_data({"index": index+1})
         await message.answer(text=text)
         await state.set_state(VocabularyTraining.Word)
     else:
-        await message.answer(f"<b>Train is over</b>. You can test you knowledge in Quiz section",
+        await message.answer(f"<b>Train is over</b>. You can test your knowledge in Quiz section",
                              reply_markup=main_page_keyboard())
         await state.clear()

@@ -31,4 +31,22 @@ class VocabularyTraining(StatesGroup):
 
 
 class Quiz(StatesGroup):
-    Name = State()
+    BookTitle = State()
+    TestNumber = State()
+    PassageNumber = State()
+    Word = State()
+
+
+class Collection(StatesGroup):
+    Title = State()
+
+
+class CollectionWord(StatesGroup):
+    Collection = State()
+    Word = State()
+
+
+class CollectionWordTraining(StatesGroup):
+    Collection = State()
+    Word = State()
+

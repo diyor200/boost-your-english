@@ -6,7 +6,6 @@ from datetime import datetime
 import betterlogging as bl
 
 from aiogram import Dispatcher, Bot, types
-from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram.client.default import DefaultBotProperties
@@ -26,7 +25,7 @@ from tgbot.services import broadcaster
 async def on_startup(bot: Bot, db: infrastructure.database.postgresql.Database, admin_ids: list[int]):
     try:
         await db.create()
-        await db.create_table_users()
+        await db.create_tables()
     except:
         await broadcaster.broadcast(bot, admin_ids, "can't create tables. Program is stopping.....")
         logging.error("can't create tables. Program is stopping.....")
@@ -229,8 +228,6 @@ async def shutdown():
 
 
 async def main():
-#     # session = AiohttpSession(proxy="http://172.25.113.50:8085")
-     # bot = Bot(token=config.tg_bot.token, parse_mode="HTML", session=session)
      bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
      if await bot.get_webhook_info():
          await bot.delete_webhook()

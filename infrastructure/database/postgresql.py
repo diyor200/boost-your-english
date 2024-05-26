@@ -58,7 +58,7 @@ class Database:
                     result = await connection.execute(command, *args)
             return result
 
-    async def create_table_users(self):
+    async def create_tables(self):
         sql = """
         create table if not exists users(
     id serial primary key,
@@ -122,7 +122,22 @@ create table if not exists test_results(
     test_id int references test(id),
     score int not null ,
     created_at timestamp default now()
-)
+);
+
+create table if not exists collections(
+    id bigserial not null primary key ,
+    title varchar(255) not null ,
+    user_id varchar(25) references users(telegram_id),
+    created_at timestamp not null default date_trunc('minute', NOW() AT TIME ZONE 'Asia/Tashkent')
+);
+
+create table if not exists collection_word(
+    id bigserial primary key ,
+    collection_id int references collections(id),
+    word varchar(255) not null ,
+    translation varchar(300) not null,
+    created_at timestamp not null default date_trunc('minute', NOW() AT TIME ZONE 'Asia/Tashkent')
+);
         """
         await self.execute(sql, execute=True)
 
@@ -156,7 +171,7 @@ create table if not exists test_results(
             fetch=True
         )
 
-    #  book's tests
+    #  book's test
     async def add_book_passage(self, test_number, passage_number):
         sql = ("insert into passages(test_id, number, created_at) values ((select id from tests where number=$1), $2,"
                " date_trunc('minute', NOW() AT TIME ZONE 'Asia/Tashkent'))")
@@ -201,6 +216,28 @@ create table if not exists test_results(
         sql = """insert into vocabulary(book_id, test_id, passage_id, word, definition, translation)
                 values ($1,$2,$3,$4,$5,$6);"""
         return await self.execute(sql, book_id, test_id, passage_id, word, definition, translation, execute=True)
+
+    # collections
+    async def add_collection(self, title, telegram_id):
+        sql = "insert into collections(title, user_id) values ($1, $2)"
+        return await self.execute(sql, title, telegram_id, execute=True)
+
+    async def select_all_collections(self, telegram_id: str):
+        sql = "SELECT * FROM collections where user_id=$1"
+        return await self.execute(sql, telegram_id, fetch=True)
+
+    async def get_collection_id(self,title, telegram_id: str):
+        sql = "SELECT id FROM collections where user_id=$1 and title=$2 limit 1"
+        return await self.execute(sql, telegram_id, title, fetchrow=True)
+
+    # collection words
+    async def add_collection_word(self, collection_id, word, translation):
+        sql = "insert into collection_word(collection_id, word, translation) values ($1, $2, $3)"
+        return await self.execute(sql, collection_id, word, translation, execute=True)
+
+    async def select_all_collection_words(self, collection_id: int):
+        sql = "select * from collection_word where collection_id=$1"
+        return await self.execute(sql, collection_id, fetch=True)
 
     # users
     async def add_user(self, name, username, telegram_id):

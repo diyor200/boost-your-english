@@ -8,7 +8,9 @@ def main_page_keyboard() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=[[
         KeyboardButton(text="Training🏋️"),
         KeyboardButton(text="Quiz🤓"),
-    ]], resize_keyboard=True)
+    ],
+        [KeyboardButton(text='Collection')],
+    ], resize_keyboard=True)
 
 
 async def get_book_keyboard() -> ReplyKeyboardMarkup:
@@ -41,7 +43,21 @@ async def get_passage_by_test(test_number: int, book_title: str) -> ReplyKeyboar
     return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
 
 
+# collection
+async def get_collections(user_id: str) -> ReplyKeyboardMarkup:
+    collections = await db.select_all_collections(user_id)
+    keyboards = []
+    for i in collections:
+        keyboard = KeyboardButton(text=str(i[1]))
+        keyboards.append(keyboard)
+
+    return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
+
 end_next_keyboard = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='next')],
     [KeyboardButton(text='finish')],
+], resize_keyboard=True)
+
+finish_keyboard = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='finish')]
 ], resize_keyboard=True)

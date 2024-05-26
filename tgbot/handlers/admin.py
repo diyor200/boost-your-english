@@ -1,4 +1,5 @@
 import logging
+import asyncpg
 
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
@@ -19,6 +20,8 @@ async def admin_start(message: Message):
         await db.add_user(name=message.from_user.full_name,
                           username=message.from_user.username,
                           telegram_id=str(message.from_user.id))
+    except asyncpg.exceptions.UniqueViolationError:
+        pass
     except Exception as e:
         logging.error(msg=f"error during adding user: {e}")
 
