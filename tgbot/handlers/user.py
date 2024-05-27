@@ -17,9 +17,9 @@ async def user_start(message: Message):
                           name=message.from_user.full_name,
                           username=message.from_user.username)
     except asyncpg.exceptions.UniqueViolationError:
-        await db.select_user(telegram_id=message.from_user.id)
+        pass
 
-    await message.answer("Xush kel`ibsiz!", reply_markup=main_page_keyboard())
+    await message.answer("Xush kelibsiz!", reply_markup=main_page_keyboard())
 
 
 @user_router.message(Command("help"))
