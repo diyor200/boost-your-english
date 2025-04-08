@@ -1,3 +1,5 @@
+import logging
+
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
@@ -9,28 +11,47 @@ def main_page_keyboard() -> ReplyKeyboardMarkup:
         KeyboardButton(text="Training🏋️"),
         KeyboardButton(text="Quiz🤓"),
     ],
-        [KeyboardButton(text='Collection')],
     ], resize_keyboard=True)
 
+def go_menu_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(keyboard=[[
+        KeyboardButton(text="🏠Bosh menu"),
+    ]], resize_keyboard=True)
 
 async def get_book_keyboard() -> ReplyKeyboardMarkup:
-    books = await db.get_all_books()
+    categories = await db.get_all_categories()
     keyboards = []
-    for i in books:
-        keyboard = KeyboardButton(text=i[0])
-        keyboards.append(keyboard)
+    for i in categories:
+        keyboard = KeyboardButton(text=i[1])
+        keyboards.append([keyboard])
 
-    return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
+    keyboards.append([KeyboardButton(text='🏠Bosh menu')])
+    return ReplyKeyboardMarkup(keyboard=keyboards, resize_keyboard=True)
 
+async def get_word_slices_markup(category_id: int) -> ReplyKeyboardMarkup:
+    try:
+        db_count = await db.get_vocabularies_count_by_category_id(category_id)
+        count = db_count.get('count', 0)
 
-async def get_test_by_book(book_title: str) -> ReplyKeyboardMarkup:
-    tests = await db.get_book_tests(book_title)
-    keyboards = []
-    for i in tests:
-        keyboard = KeyboardButton(text=str(i[0]))
-        keyboards.append(keyboard)
+        if count == 0:
+            return ReplyKeyboardMarkup(keyboard=[], resize_keyboard=True)
 
-    return ReplyKeyboardMarkup(keyboard=[keyboards], resize_keyboard=True)
+        keyboards = []
+        step = 30
+
+        for start in range(1, count + 1, step):
+            end = min(start + step - 1, count)
+            keyboards.append(KeyboardButton(text=f"{start}-{end}"))
+
+        # Разбиение на строки по 3 кнопки
+        row_size = 3
+        res_markup = [keyboards[i:i + row_size] for i in range(0, len(keyboards), row_size)]
+        res_markup.append([KeyboardButton(text="🏠Bosh menu")])
+        return ReplyKeyboardMarkup(keyboard=res_markup, resize_keyboard=True)
+
+    except Exception as e:
+        logging.exception("Ошибка при создании клавиатуры выбора диапазона слов:")
+        return ReplyKeyboardMarkup(keyboard=[], resize_keyboard=True)
 
 
 async def get_passage_by_test(test_number: int, book_title: str) -> ReplyKeyboardMarkup:

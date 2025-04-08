@@ -17,23 +17,21 @@ class NewPassage(StatesGroup):
 
 
 class NewWord(StatesGroup):
-    BookTitle = State()
-    TestNumber = State()
+    Category = State()
+    File = State()
     PassageNumber = State()
     Word = State()
 
 
 class VocabularyTraining(StatesGroup):
-    BookTitle = State()
-    TestNumber = State()
-    PassageNumber = State()
+    Category = State()
+    Slices = State()
     Word = State()
 
 
 class Quiz(StatesGroup):
-    BookTitle = State()
-    TestNumber = State()
-    PassageNumber = State()
+    Category = State()
+    Slices = State()
     Word = State()
 
 
